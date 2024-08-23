@@ -1,5 +1,6 @@
 package com.mapboxnavigation
 
+import android.graphics.Color
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.content.res.Resources
@@ -13,11 +14,16 @@ import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.events.RCTEventEmitter
 import com.mapbox.api.directions.v5.models.Bearing
 import com.mapbox.api.directions.v5.models.RouteOptions
+import com.mapbox.api.directions.v5.DirectionsCriteria
+import com.mapbox.api.directions.v5.DirectionsCriteria.ProfileCriteria
 import com.mapbox.bindgen.Expected
 import com.mapbox.common.location.Location
 import com.mapbox.geojson.Point
 import com.mapbox.maps.EdgeInsets
 import com.mapbox.maps.ImageHolder
+import com.mapbox.maps.MapView
+import com.mapbox.maps.MapboxMap
+import com.mapbox.maps.Style
 import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.maps.plugin.locationcomponent.location
@@ -79,6 +85,7 @@ import com.mapbox.navigation.voice.model.SpeechError
 import com.mapbox.navigation.voice.model.SpeechValue
 import com.mapbox.navigation.voice.model.SpeechVolume
 import com.mapboxnavigation.databinding.NavigationViewBinding
+import com.google.gson.Gson
 import java.util.Locale
 
 @SuppressLint("ViewConstructor")
@@ -141,10 +148,10 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
   }
   private val followingPadding: EdgeInsets by lazy {
     EdgeInsets(
-      180.0 * pixelDensity,
-      40.0 * pixelDensity,
-      150.0 * pixelDensity,
-      40.0 * pixelDensity
+      200.0 * pixelDensity,
+      60.0 * pixelDensity,
+      170.0 * pixelDensity,
+      60.0 * pixelDensity
     )
   }
   private val landscapeFollowingPadding: EdgeInsets by lazy {
@@ -174,10 +181,8 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
     set(value) {
       field = value
       if (value) {
-        binding.soundButton.muteAndExtend(BUTTON_ANIMATION_DURATION)
         voiceInstructionsPlayer?.volume(SpeechVolume(0f))
       } else {
-        binding.soundButton.unmuteAndExtend(BUTTON_ANIMATION_DURATION)
         voiceInstructionsPlayer?.volume(SpeechVolume(1f))
       }
     }
@@ -205,6 +210,7 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
   private val voiceInstructionsObserver = VoiceInstructionsObserver { voiceInstructions ->
     speechApi.generate(voiceInstructions, speechCallback)
   }
+  
 
   /**
    * Based on whether the synthesized audio file is available, the callback plays the file
@@ -552,17 +558,12 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
       navigationCamera.requestNavigationCameraToOverview()
       binding.recenter.showTextAndExtend(BUTTON_ANIMATION_DURATION)
     }
-    binding.soundButton.setOnClickListener {
-      // mute/unmute voice instructions
-      isVoiceInstructionsMuted = !isVoiceInstructionsMuted
-    }
+
 
     // Check initial muted or not
     if (this.isVoiceInstructionsMuted) {
-      binding.soundButton.mute()
       voiceInstructionsPlayer?.volume(SpeechVolume(0f))
     } else {
-      binding.soundButton.unmute()
       voiceInstructionsPlayer?.volume(SpeechVolume(1f))
     }
   }
@@ -581,9 +582,7 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
     binding.mapView.location.apply {
       setLocationProvider(navigationLocationProvider)
       this.locationPuck = LocationPuck2D(
-        bearingImage = ImageHolder.Companion.from(
-          com.mapbox.navigation.ui.maps.R.drawable.mapbox_navigation_puck_icon
-        )
+            bearingImage = ImageHolder.from(com.mapbox.navigation.ui.components.R.drawable.mapbox_navigation_puck_icon),
       )
       puckBearingEnabled = true
       enabled = true
@@ -630,6 +629,7 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
         .applyDefaultNavigationOptions()
         .applyLanguageAndVoiceUnitOptions(context)
         .coordinatesList(coordinates)
+        .profile(DirectionsCriteria.PROFILE_DRIVING)
         .language(locale.language)
         .build(),
       object : NavigationRouterCallback {
@@ -645,7 +645,17 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
           routes: List<NavigationRoute>,
           @RouterOrigin routerOrigin: String
         ) {
-          setRouteAndStartNavigation(routes)
+        val gson = Gson()
+        val routesJson = gson.toJson(routes)
+
+        val event = Arguments.createMap()
+        event.putString("route", routesJson)
+
+        context
+        .getJSModule(RCTEventEmitter::class.java)
+        .receiveEvent(id, "onRoutesReady", event)
+
+            setRouteAndStartNavigation(routes)
         }
       }
     )
@@ -658,7 +668,6 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
     mapboxNavigation.setNavigationRoutes(routes)
 
     // show UI elements
-    binding.soundButton.visibility = View.VISIBLE
     binding.routeOverview.visibility = View.VISIBLE
 
     // move the camera to overview when new route is available
@@ -694,7 +703,6 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
     mapboxNavigation.setNavigationRoutes(listOf())
 
     // hide UI elements
-    binding.soundButton.visibility = View.INVISIBLE
     binding.maneuverView.visibility = View.INVISIBLE
     binding.routeOverview.visibility = View.INVISIBLE
   }

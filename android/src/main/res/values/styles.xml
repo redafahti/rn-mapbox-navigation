@@ -1,32 +1,17 @@
 <resources>
-
-  <style name="MapboxCustomManeuverTurnIconStyle" parent="MapboxStyleTurnIconManeuver">
-    <item name="maneuverTurnIconColor">#FFEB3B</item>
-    <item name="maneuverTurnIconShadowColor">#7A6E03</item>
-  </style>
-
-  <style name="MapboxCustomManeuverStyle" parent="MapboxStyleManeuverView">
-        <item name="maneuverViewBackgroundColor">#058A0A</item>
-        <item name="subManeuverViewBackgroundColor">#046808</item>
-        <item name="upcomingManeuverViewBackgroundColor">#046808</item>
-        <item name="maneuverViewIconStyle">@style/MapboxCustomManeuverTurnIconStyle</item>
-        <item name="laneGuidanceManeuverIconStyle">@style/MapboxCustomManeuverTurnIconStyle</item>
-    </style>
-
     <style name="PrimaryManeuverTextAppearance" parent="TextAppearance.AppCompat">
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:textSize">24sp</item>
+        <item name="android:textSize">18sp</item>
     </style>
+
     <style name="ManeuverTextAppearance" parent="TextAppearance.AppCompat">
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:textSize">18sp</item>
     </style>
+
     <style name="StepDistanceRemainingAppearance" parent="TextAppearance.AppCompat">
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:textSize">16sp</item>
     </style>
-    
-
 </resources>
-
