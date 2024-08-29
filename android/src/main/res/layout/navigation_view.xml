@@ -4,9 +4,30 @@
 
     <com.mapbox.maps.MapView android:id="@+id/mapView" android:layout_width="0dp" android:layout_height="0dp" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
-    <com.mapbox.navigation.ui.components.maneuver.view.MapboxManeuverView android:id="@+id/maneuverView" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" android:visibility="visible" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
+        <androidx.cardview.widget.CardView
+        android:id="@+id/maneuverContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="20dp"
+        app:cardBackgroundColor="#3FA5F0"
+        android:visibility="gone"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginTop="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
-    <com.mapbox.navigation.ui.components.maps.camera.view.MapboxRouteOverviewButton android:id="@+id/routeOverview" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:layout_marginEnd="16dp" android:visibility="invisible" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toBottomOf="@id/maneuverView" />
+        <com.mapbox.navigation.ui.components.maneuver.view.MapboxManeuverView
+            android:id="@+id/maneuverView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/MapboxCustomManeuverStyle" />
+
+    </androidx.cardview.widget.CardView>
+
+
+    <com.mapbox.navigation.ui.components.maps.camera.view.MapboxRouteOverviewButton android:id="@+id/routeOverview" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:layout_marginEnd="16dp" android:visibility="invisible" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toBottomOf="@id/maneuverContainer" />
 
     <com.mapbox.navigation.ui.components.maps.camera.view.MapboxRecenterButton android:id="@+id/recenter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:layout_marginEnd="16dp" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toBottomOf="@id/routeOverview" />
 

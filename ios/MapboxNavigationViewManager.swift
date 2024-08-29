@@ -1,19 +1,36 @@
-@objc(MapboxNavigationViewManager)
-class MapboxNavigationViewManager: RCTViewManager {
-    override func view() -> UIView! {
-        return MapboxNavigationView();
+@objc(MapboxnavigationViewManager)
+class MapboxnavigationViewManager: RCTViewManager {
+
+  override func view() -> (MapboxnavigationView) {
+    return MapboxnavigationView()
+  }
+
+  @objc override static func requiresMainQueueSetup() -> Bool {
+    return false
+  }
+}
+
+class MapboxnavigationView : UIView {
+
+  @objc var color: String = "" {
+    didSet {
+      self.backgroundColor = hexStringToUIColor(hexColor: color)
     }
-    
-    override static func requiresMainQueueSetup() -> Bool {
-        return true
+  }
+
+  func hexStringToUIColor(hexColor: String) -> UIColor {
+    let stringScanner = Scanner(string: hexColor)
+
+    if(hexColor.hasPrefix("#")) {
+      stringScanner.scanLocation = 1
     }
-    
-    @objc(setWaypoints:coordinates:)
-    public func setWaypoints(view: Any, coordinates: [MapboxCoordinate]) {
-        guard let currentView = view as? MapboxNavigationView else {
-            return
-        }
-        let waypoints = coordinates.compactMap { $0.coordinate }
-        currentView.setWaypoints(coordinates: waypoints)
-    }
+    var color: UInt32 = 0
+    stringScanner.scanHexInt32(&color)
+
+    let r = CGFloat(Int(color >> 16) & 0x000000FF)
+    let g = CGFloat(Int(color >> 8) & 0x000000FF)
+    let b = CGFloat(Int(color) & 0x000000FF)
+
+    return UIColor(red: r / 255.0, green: g / 255.0, blue: b / 255.0, alpha: 1)
+  }
 }

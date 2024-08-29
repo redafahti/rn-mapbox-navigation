@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  MapboxNavigationExample
+//  MapboxnavigationExample
 //
 
 import Foundation

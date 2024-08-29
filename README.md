@@ -11,6 +11,14 @@ npm install mapboxnavigation
 ## Usage
 
 
+```js
+import { MapboxnavigationView } from "mapboxnavigation";
+
+// ...
+
+<MapboxnavigationView color="tomato" />
+```
+
 
 ## Contributing
 

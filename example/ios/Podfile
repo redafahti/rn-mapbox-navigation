@@ -6,7 +6,6 @@ require Pod::Executable.execute_command('node', ['-p',
   )', __dir__]).strip
 
 platform :ios, min_ios_version_supported
-plugin 'cocoapods-patch'
 prepare_react_native_project!
 
 linkage = ENV['USE_FRAMEWORKS']
@@ -15,7 +14,7 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
-target 'MapboxNavigationExample' do
+target 'MapboxnavigationExample' do
   config = use_native_modules!
 
   use_react_native!(
@@ -24,7 +23,7 @@ target 'MapboxNavigationExample' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-  target 'MapboxNavigationExampleTests' do
+  target 'MapboxnavigationExampleTests' do
     inherit! :complete
     # Pods for testing
   end
