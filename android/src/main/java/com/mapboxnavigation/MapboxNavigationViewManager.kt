@@ -32,6 +32,7 @@ class MapboxNavigationViewManager(private var reactContext: ReactApplicationCont
       "onArrive", MapBuilder.of("registrationName", "onArrive"),
       "onRouteProgressChange", MapBuilder.of("registrationName", "onRouteProgressChange"),
       "onRoutesReady", MapBuilder.of("registrationName", "onRoutesReady"),
+      "onRouteChange", MapBuilder.of("registrationName", "onRouteChange"),
     )
   }
 

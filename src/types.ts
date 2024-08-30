@@ -25,11 +25,11 @@ export type RouteProgress = {
   distanceRemaining: number;
 };
 
-
 export type NativeEventsProps = {
   onLocationChange?: (event: NativeEvent<Location>) => void;
   onRouteProgressChange?: (event: NativeEvent<any>) => void;
-  onRoutesReady?: (event: NativeEvent<RouteProgress>) => void;
+  onRoutesReady?: (event: NativeEvent<any>) => void;
+  onRouteChange?: (event: NativeEvent<any>) => void;
   onError?: (event: any) => void;
   onCancelNavigation?: () => void;
   onArrive?: () => void;
@@ -49,6 +49,7 @@ export interface MapboxNavigationProps {
   onLocationChange?: (location: Location) => void;
   onRouteProgressChange?: (progress: RouteProgress) => void;
   onRouteLegProgressChange?: (progress: RouteProgress) => void;
+  onRouteChange?: (route: any) => void;
   onRoutesReady?: (route: any) => void;
   onError?: (error: any) => void;
   onCancelNavigation?: () => void;

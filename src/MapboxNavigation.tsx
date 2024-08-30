@@ -101,6 +101,7 @@ class MapboxNavigation extends React.Component<
       onLocationChange,
       onRouteProgressChange,
       onRoutesReady,
+      onRouteChange,
       onError,
       ...rest
     } = this.props;
@@ -118,6 +119,7 @@ class MapboxNavigation extends React.Component<
             onRouteProgressChange?.(event.nativeEvent)
           }
           onRoutesReady={(event) => onRoutesReady?.(event.nativeEvent)}
+          onRouteChange={(event) => onRouteChange?.(event.nativeEvent)}
           onError={(event) => onError?.(event.nativeEvent)}
           {...rest}
         />
