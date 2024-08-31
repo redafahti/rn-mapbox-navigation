@@ -470,6 +470,7 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
     val event = Arguments.createMap()
     val StopDurationRemaining = routeProgress.currentLegProgress?.durationRemaining?.toDouble() ?: 0.0
     val StopDistanceRemaining = routeProgress.currentLegProgress?.distanceRemaining?.toDouble() ?: 0.0
+    val StopDistanceTraveled = routeProgress.currentLegProgress?.distanceTraveled?.toDouble() ?: 0.0
     val StopIndex = routeProgress.currentLegProgress?.legIndex?.toDouble() ?: 0.0 
     event.putDouble("distanceTraveled", routeProgress.distanceTraveled.toDouble())
     event.putDouble("durationRemaining", routeProgress.durationRemaining.toDouble())
@@ -478,6 +479,7 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
     event.putDouble("StopIndex", StopIndex)
     event.putDouble("StopDurationRemaining", StopDurationRemaining)
     event.putDouble("StopDistanceRemaining", StopDistanceRemaining)
+    event.putDouble("StopDistanceTraveled", StopDistanceTraveled)
     context
       .getJSModule(RCTEventEmitter::class.java)
       .receiveEvent(id, "onRouteProgressChange", event)
