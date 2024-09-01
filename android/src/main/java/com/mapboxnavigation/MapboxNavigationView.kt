@@ -696,15 +696,8 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
         } else {
         voiceInstructionsPlayer?.volume(SpeechVolume(1f))
         }
-
-
-        // In case of `startReplayTripSession`,
-        // location events are emitted by the `MapboxReplayer`
-        //mapboxNavigation.startReplayTripSession()
-
-        // mapboxNavigation.startTripSession(withForegroundService = false) remove withForegroundService
-         mapboxNavigation.startTripSession(withForegroundService = true) //add withForegroundService
-        //startRoute --->
+        
+        mapboxNavigation.startTripSession()
         startRoute()
     }
 
