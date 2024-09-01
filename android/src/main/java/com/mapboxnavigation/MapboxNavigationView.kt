@@ -120,6 +120,8 @@ import com.mapboxnavigation.databinding.NavigationViewBinding
 import com.mapboxnavigation.R
 import com.google.gson.Gson
 import java.util.Locale
+import java.util.Date
+
 
 @SuppressLint("ViewConstructor")
 class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout(context.baseContext) {
@@ -493,264 +495,40 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
    * - routes annotations get refreshed (for example, congestion annotation that indicate the live traffic along the route)
    * - driver got off route and a reroute was executed
    */
-  private val routesObserver = RoutesObserver { routeUpdateResult ->
-    val navigationRoutes = routeUpdateResult.navigationRoutes
-
-    if (navigationRoutes.isNotEmpty()) {
-        val alternativesMetadata = mapboxNavigation.getAlternativeMetadataFor(
-            navigationRoutes
-        )
-        // generate route geometries asynchronously and render them
-        routeLineApi.setNavigationRoutes(
-            navigationRoutes,
-            alternativesMetadata,
-        ) { value ->
-            binding.mapView.mapboxMap.style?.apply {
-                routeLineView.renderRouteDrawData(this, value)
-            }
-        }
-        // update the camera position to account for the new route
-        viewportDataSource.onRouteChanged(navigationRoutes.first())
-        viewportDataSource.evaluate()
-    } else {
-        // remove the route line and route arrow from the map
-        val style = binding.mapView.mapboxMap.style
-        if (style != null) {
-            routeLineApi.clearRouteLine { value ->
-            routeLineView.renderClearRouteLineValue(
-                style,
-                value
+    private val routesObserver = RoutesObserver { routeUpdateResult ->
+        val navigationRoutes = routeUpdateResult.navigationRoutes
+        if (navigationRoutes.isNotEmpty()) {
+            val alternativesMetadata = mapboxNavigation.getAlternativeMetadataFor(
+                navigationRoutes
             )
+            // generate route geometries asynchronously and render them
+            routeLineApi.setNavigationRoutes(
+                navigationRoutes,
+                alternativesMetadata,
+            ) { value ->
+                binding.mapView.mapboxMap.style?.apply {
+                    routeLineView.renderRouteDrawData(this, value)
+                }
+            }
+            // update the camera position to account for the new route
+            viewportDataSource.onRouteChanged(navigationRoutes.first())
+            viewportDataSource.evaluate()
+        } else {
+            // remove the route line and route arrow from the map
+            val style = binding.mapView.mapboxMap.style
+            if (style != null) {
+                routeLineApi.clearRouteLine { value ->
+                routeLineView.renderClearRouteLineValue(
+                    style,
+                    value
+                )
+            }
+            routeArrowView.render(style, routeArrowApi.clearArrows())
         }
-        routeArrowView.render(style, routeArrowApi.clearArrows())
-      }
-
         // remove the route reference from camera position evaluations
         viewportDataSource.clearRouteData()
         viewportDataSource.evaluate()
-    }
-
-        val gson = Gson()
-        val routesJson = gson.toJson(navigationRoutes.first())
-        val event = Arguments.createMap()
-        event.putString("newRoute", routesJson)
-        // route event change
-        context
-            .getJSModule(RCTEventEmitter::class.java)
-            .receiveEvent(id, "onRouteChange", event)
-    }
-
-    private val onPositionChangedListener = OnIndicatorPositionChangedListener { point ->
-        val result = routeLineApi.updateTraveledRouteLine(point)
-        
-        binding.mapView.mapboxMap.getStyle()?.apply {
-            // Render the result to update the map.
-            routeLineView.renderRouteLineUpdate(this, result)
         }
-    }
-
-  @SuppressLint("MissingPermission")
-  fun onCreate() {
-    if (origin == null || destination == null) {
-      sendErrorToReact("origin and destination are required")
-      return
-    }
-
-    binding.mapView.logo.updateSettings {
-      enabled = false
-    }
-    binding.mapView.attribution.updateSettings {
-      enabled = false
-    }
-    binding.mapView.compass.enabled = false
-    binding.mapView.scalebar.enabled = false
-    binding.mapView.gestures.pitchEnabled = false
-    binding.mapView.gestures.rotateEnabled = false
-
-    
-    // initialize Mapbox Navigation
-    mapboxNavigation = if (MapboxNavigationProvider.isCreated()) {
-      MapboxNavigationProvider.retrieve()
-    } else {
-      MapboxNavigationProvider.create(
-        NavigationOptions.Builder(context)
-          .build()
-      )
-    }
-
-        // initialize location puck
-        binding.mapView.location.apply {
-            setLocationProvider(navigationLocationProvider)
-            this.locationPuck = LocationPuck2D(
-                bearingImage = ImageHolder.Companion.from(
-                    R.drawable.mapbox_navigation_puck_icon
-                )
-            )
-            puckBearingEnabled = true
-            enabled = true
-        }
-
-    binding.mapView.location.addOnIndicatorPositionChangedListener(onPositionChangedListener)
-
-    // set the animations lifecycle listener to ensure the NavigationCamera stops
-    // automatically following the user location when the map is interacted with
-    binding.mapView.camera.addCameraAnimationsLifecycleListener(
-      NavigationBasicGesturesHandler(navigationCamera)
-    )
-
-    navigationCamera.registerNavigationCameraStateChangeObserver { navigationCameraState ->
-      // shows/hide the recenter button depending on the camera state
-      when (navigationCameraState) {
-        NavigationCameraState.TRANSITION_TO_FOLLOWING,
-        NavigationCameraState.FOLLOWING -> binding.recenter.visibility = View.INVISIBLE
-        NavigationCameraState.TRANSITION_TO_OVERVIEW,
-        NavigationCameraState.OVERVIEW,
-        NavigationCameraState.IDLE -> binding.recenter.visibility = View.VISIBLE
-      }
-    }
-
-
-    binding.mapView.getMapboxMap()?.loadStyleUri(
-        "mapbox://styles/redafa/clxm5vwgx00h701pd1uvublem",
-        object : Style.OnStyleLoaded {
-            override fun onStyleLoaded(style: Style) {
-                routeLineView.initializeLayers(style)
-                addAnnotationToMap()
-            }
-        }
-    )
-
-    viewportDataSource.options.followingFrameOptions.defaultPitch = 40.0
-    viewportDataSource.options.followingFrameOptions.centerUpdatesAllowed= true
-    viewportDataSource.options.followingFrameOptions.zoomUpdatesAllowed = true
-    viewportDataSource.options.followingFrameOptions.minZoom = followZoomLevel
-    viewportDataSource.options.followingFrameOptions.maxZoom = followZoomLevel
-    viewportDataSource.options.followingFrameOptions.bearingUpdatesAllowed = true
-
-
-    // set the padding values depending on screen orientation and visible view layout
-    if (this.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-      viewportDataSource.overviewPadding = landscapeOverviewPadding
-    } else {
-      viewportDataSource.overviewPadding = overviewPadding
-    }
-    if (this.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-      viewportDataSource.followingPadding = landscapeFollowingPadding
-    } else {
-      viewportDataSource.followingPadding = followingPadding
-    }
-
-
-    // set the padding values depending on screen orientation and visible view layout
-    if (this.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-      viewportDataSource.overviewPadding = landscapeOverviewPadding
-    } else {
-      viewportDataSource.overviewPadding = overviewPadding
-    }
-    if (this.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-      viewportDataSource.followingPadding = landscapeFollowingPadding
-    } else {
-      viewportDataSource.followingPadding = followingPadding
-    }
-
-    // make sure to use the same DistanceFormatterOptions across different features
-    val distanceFormatterOptions = DistanceFormatterOptions.Builder(context).build()
-
-    // initialize maneuver api that feeds the data to the top banner maneuver view
-    maneuverApi = MapboxManeuverApi(
-      MapboxDistanceFormatter(distanceFormatterOptions)
-    )
-
-    // initialize voice instructions api and the voice instruction player
-    speechApi = MapboxSpeechApi(
-      context,
-      locale.language
-    )
-    voiceInstructionsPlayer = MapboxVoiceInstructionsPlayer(
-      context,
-      locale.language
-    )
-
-    binding.recenter.setOnClickListener {
-      navigationCamera.requestNavigationCameraToFollowing()
-      binding.routeOverview.showTextAndExtend(BUTTON_ANIMATION_DURATION)
-    }
-    binding.routeOverview.setOnClickListener {
-      navigationCamera.requestNavigationCameraToOverview()
-      binding.recenter.showTextAndExtend(BUTTON_ANIMATION_DURATION)
-    }
-
-
-    // Check initial muted or not
-    if (this.isVoiceInstructionsMuted) {
-      voiceInstructionsPlayer?.volume(SpeechVolume(0f))
-    } else {
-      voiceInstructionsPlayer?.volume(SpeechVolume(1f))
-    }
-
-    //mapboxNavigation.startTripSession(withForegroundService = false) remove withForegroundService
-
-    mapboxNavigation.startTripSession()
-
-    startRoute()
-  }
-
-    private fun addAnnotationToMap() {
-        destinationBitmapFromDrawableRes()?.let {
-            destination?.let { destinationPoint ->
-                val annotationConfig = AnnotationConfig()
-                val annotationApi = binding.mapView.annotations
-                val pointAnnotationManager = annotationApi?.createPointAnnotationManager(annotationConfig)
-                val pointAnnotationOptions: PointAnnotationOptions = PointAnnotationOptions()
-                .withPoint(destinationPoint)
-                .withIconImage(it)
-                .withIconSize(1.6)
-                pointAnnotationManager?.create(pointAnnotationOptions)
-            }
-        }
-        stopsBitmapFromDrawableRes()?.let { bitmap ->
-            val annotationConfig = AnnotationConfig()
-            val annotationApi = binding.mapView.annotations
-            val pointAnnotationManager = annotationApi?.createPointAnnotationManager(annotationConfig)
-
-            waypoints.forEach { waypoint ->
-                val pointAnnotationOptions = PointAnnotationOptions()
-                    .withPoint(waypoint) 
-                    .withIconImage(bitmap)
-                    .withIconSize(1.6)
-                pointAnnotationManager?.create(pointAnnotationOptions)
-            }
-        }
-    }
-
-    private fun destinationBitmapFromDrawableRes() = convertDrawableToBitmap(ContextCompat.getDrawable(context, R.drawable.destination_icon))
-    private fun stopsBitmapFromDrawableRes() = convertDrawableToBitmap(ContextCompat.getDrawable(context, R.drawable.waypoint_icon))
-
-    private fun convertDrawableToBitmap(sourceDrawable: Drawable?): Bitmap? {
-        if (sourceDrawable == null) {
-            return null
-        }
-        return if (sourceDrawable is BitmapDrawable) {
-            sourceDrawable.bitmap
-        } else {
-            val constantState = sourceDrawable.constantState ?: return null
-            val drawable = constantState.newDrawable().mutate()
-            val bitmap: Bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(bitmap)
-            drawable.setBounds(0, 0, canvas.width, canvas.height)
-            drawable.draw(canvas)
-            bitmap
-        }
-    }
-    
-
-    private fun onDestroy() {
-        maneuverApi.cancel()
-        routeLineApi.cancel()
-        routeLineView.cancel()
-        speechApi.cancel()
-        voiceInstructionsPlayer?.shutdown()
-        mapboxNavigation.stopTripSession()
     }
 
     private val arrivalObserver = object : ArrivalObserver {
@@ -772,17 +550,178 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
         }
     }
 
-    override fun requestLayout() {
-        super.requestLayout()
-        post(measureAndLayout)
+    private val onPositionChangedListener = OnIndicatorPositionChangedListener { point ->
+        val result = routeLineApi.updateTraveledRouteLine(point)
+        
+        binding.mapView.mapboxMap.getStyle()?.apply {
+            // Render the result to update the map.
+            routeLineView.renderRouteLineUpdate(this, result)
+        }
     }
 
-    private val measureAndLayout = Runnable {
-        measure(
-        MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-        MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
+    @SuppressLint("MissingPermission")
+    fun onCreate() {
+        if (origin == null || destination == null) {
+        sendErrorToReact("origin and destination are required")
+        return
+        }
+
+        binding.mapView.logo.updateSettings {
+        enabled = false
+        }
+        binding.mapView.attribution.updateSettings {
+        enabled = false
+        }
+        binding.mapView.compass.enabled = false
+        binding.mapView.scalebar.enabled = false
+        binding.mapView.gestures.pitchEnabled = false
+        binding.mapView.gestures.rotateEnabled = false
+
+        
+        // initialize Mapbox Navigation
+        mapboxNavigation = if (MapboxNavigationProvider.isCreated()) {
+            MapboxNavigationProvider.retrieve()
+        } else {
+            MapboxNavigationProvider.create(
+                NavigationOptions.Builder(context)
+                .build()
+            )
+        }
+        // initialize location puck
+        binding.mapView.location.apply {
+            setLocationProvider(navigationLocationProvider)
+            this.locationPuck = LocationPuck2D(
+                bearingImage = ImageHolder.Companion.from(
+                    R.drawable.mapbox_navigation_puck_icon
+                )
+            )
+            puckBearingEnabled = true
+            enabled = true
+        }
+
+
+        binding.mapView.location.addOnIndicatorPositionChangedListener(onPositionChangedListener)
+
+        // set the animations lifecycle listener to ensure the NavigationCamera stops
+        // automatically following the user location when the map is interacted with
+        binding.mapView.camera.addCameraAnimationsLifecycleListener(
+        NavigationBasicGesturesHandler(navigationCamera)
         )
-        layout(left, top, right, bottom)
+
+        navigationCamera.registerNavigationCameraStateChangeObserver { navigationCameraState ->
+        // shows/hide the recenter button depending on the camera state
+        when (navigationCameraState) {
+            NavigationCameraState.TRANSITION_TO_FOLLOWING,
+            NavigationCameraState.FOLLOWING -> binding.recenter.visibility = View.INVISIBLE
+            NavigationCameraState.TRANSITION_TO_OVERVIEW,
+            NavigationCameraState.OVERVIEW,
+            NavigationCameraState.IDLE -> binding.recenter.visibility = View.VISIBLE
+        }
+        }
+
+
+        binding.mapView.getMapboxMap()?.loadStyleUri(
+            "mapbox://styles/redafa/clxm5vwgx00h701pd1uvublem",
+            object : Style.OnStyleLoaded {
+                override fun onStyleLoaded(style: Style) {
+                    routeLineView.initializeLayers(style)
+                    addAnnotationToMap()
+                }
+            }
+        )
+
+
+        viewportDataSource.options.followingFrameOptions.defaultPitch = 40.0
+        viewportDataSource.options.followingFrameOptions.centerUpdatesAllowed= true
+        viewportDataSource.options.followingFrameOptions.zoomUpdatesAllowed = true
+        viewportDataSource.options.followingFrameOptions.minZoom = followZoomLevel
+        viewportDataSource.options.followingFrameOptions.maxZoom = followZoomLevel
+        viewportDataSource.options.followingFrameOptions.bearingUpdatesAllowed = true
+
+
+        // set the padding values depending on screen orientation and visible view layout
+        if (this.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        viewportDataSource.overviewPadding = landscapeOverviewPadding
+        } else {
+        viewportDataSource.overviewPadding = overviewPadding
+        }
+        if (this.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        viewportDataSource.followingPadding = landscapeFollowingPadding
+        } else {
+        viewportDataSource.followingPadding = followingPadding
+        }
+
+
+        // set the padding values depending on screen orientation and visible view layout
+        if (this.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        viewportDataSource.overviewPadding = landscapeOverviewPadding
+        } else {
+        viewportDataSource.overviewPadding = overviewPadding
+        }
+        if (this.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        viewportDataSource.followingPadding = landscapeFollowingPadding
+        } else {
+        viewportDataSource.followingPadding = followingPadding
+        }
+
+        // make sure to use the same DistanceFormatterOptions across different features
+        val distanceFormatterOptions = DistanceFormatterOptions.Builder(context).build()
+
+        // initialize maneuver api that feeds the data to the top banner maneuver view
+        maneuverApi = MapboxManeuverApi(
+        MapboxDistanceFormatter(distanceFormatterOptions)
+        )
+
+        // initialize voice instructions api and the voice instruction player
+        speechApi = MapboxSpeechApi(
+        context,
+        locale.language
+        )
+        voiceInstructionsPlayer = MapboxVoiceInstructionsPlayer(
+        context,
+        locale.language
+        )
+
+        binding.recenter.setOnClickListener {
+        navigationCamera.requestNavigationCameraToFollowing()
+        binding.routeOverview.showTextAndExtend(BUTTON_ANIMATION_DURATION)
+        }
+        binding.routeOverview.setOnClickListener {
+        navigationCamera.requestNavigationCameraToOverview()
+        binding.recenter.showTextAndExtend(BUTTON_ANIMATION_DURATION)
+        }
+        // Check initial muted or not
+        if (this.isVoiceInstructionsMuted) {
+        voiceInstructionsPlayer?.volume(SpeechVolume(0f))
+        } else {
+        voiceInstructionsPlayer?.volume(SpeechVolume(1f))
+        }
+
+
+        // In case of `startReplayTripSession`,
+        // location events are emitted by the `MapboxReplayer`
+        //mapboxNavigation.startReplayTripSession()
+
+        // mapboxNavigation.startTripSession(withForegroundService = false) remove withForegroundService
+         mapboxNavigation.startTripSession(withForegroundService = true) //add withForegroundService
+        //startRoute --->
+        startRoute()
+    }
+
+    private fun startRoute() {
+        // register event listeners
+        mapboxNavigation.registerRoutesObserver(routesObserver)
+        mapboxNavigation.registerArrivalObserver(arrivalObserver)
+        mapboxNavigation.registerRouteProgressObserver(routeProgressObserver)
+        mapboxNavigation.registerLocationObserver(locationObserver)
+        mapboxNavigation.registerVoiceInstructionsObserver(voiceInstructionsObserver)
+
+        // Create a list of coordinates that includes origin, destination
+        val coordinatesList = mutableListOf<Point>()
+        this.origin?.let { coordinatesList.add(it) }
+        this.waypoints.let { coordinatesList.addAll(waypoints) }
+        this.destination?.let { coordinatesList.add(it) }
+        findRoute(coordinatesList)
     }
 
     private fun findRoute(coordinates: List<Point>) {
@@ -823,6 +762,76 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
         )
     }
 
+    private fun addAnnotationToMap() {
+        destinationBitmapFromDrawableRes()?.let {
+            destination?.let { destinationPoint ->
+                val annotationConfig = AnnotationConfig()
+                val annotationApi = binding.mapView.annotations
+                val pointAnnotationManager = annotationApi?.createPointAnnotationManager(annotationConfig)
+                val pointAnnotationOptions: PointAnnotationOptions = PointAnnotationOptions()
+                .withPoint(destinationPoint)
+                .withIconImage(it)
+                .withIconSize(1.6)
+                pointAnnotationManager?.create(pointAnnotationOptions)
+            }
+        }
+        stopsBitmapFromDrawableRes()?.let { bitmap ->
+            val annotationConfig = AnnotationConfig()
+            val annotationApi = binding.mapView.annotations
+            val pointAnnotationManager = annotationApi?.createPointAnnotationManager(annotationConfig)
+
+            waypoints.forEach { waypoint ->
+                val pointAnnotationOptions = PointAnnotationOptions()
+                    .withPoint(waypoint) 
+                    .withIconImage(bitmap)
+                    .withIconSize(1.6)
+                pointAnnotationManager?.create(pointAnnotationOptions)
+            }
+        }
+    }
+    private fun destinationBitmapFromDrawableRes() = convertDrawableToBitmap(ContextCompat.getDrawable(context, R.drawable.destination_icon))
+    private fun stopsBitmapFromDrawableRes() = convertDrawableToBitmap(ContextCompat.getDrawable(context, R.drawable.waypoint_icon))
+
+    private fun convertDrawableToBitmap(sourceDrawable: Drawable?): Bitmap? {
+        if (sourceDrawable == null) {
+            return null
+        }
+        return if (sourceDrawable is BitmapDrawable) {
+            sourceDrawable.bitmap
+        } else {
+            val constantState = sourceDrawable.constantState ?: return null
+            val drawable = constantState.newDrawable().mutate()
+            val bitmap: Bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            drawable.setBounds(0, 0, canvas.width, canvas.height)
+            drawable.draw(canvas)
+            bitmap
+        }
+    }
+    
+    private fun onDestroy() {
+        maneuverApi.cancel()
+        routeLineApi.cancel()
+        routeLineView.cancel()
+        speechApi.cancel()
+        voiceInstructionsPlayer?.shutdown()
+        mapboxNavigation.stopTripSession()
+    }
+
+    override fun requestLayout() {
+        super.requestLayout()
+        post(measureAndLayout)
+    }
+
+    private val measureAndLayout = Runnable {
+        measure(
+        MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+        MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
+        )
+        layout(left, top, right, bottom)
+    }
+
+
     @SuppressLint("MissingPermission")
     private fun setRouteAndStartNavigation(routes: List<NavigationRoute>) {
         // set routes, where the first route in the list is the primary route that
@@ -836,21 +845,6 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
         navigationCamera.requestNavigationCameraToOverview()
     }
 
-    private fun startRoute() {
-        // register event listeners
-        mapboxNavigation.registerRoutesObserver(routesObserver)
-        mapboxNavigation.registerArrivalObserver(arrivalObserver)
-        mapboxNavigation.registerRouteProgressObserver(routeProgressObserver)
-        mapboxNavigation.registerLocationObserver(locationObserver)
-        mapboxNavigation.registerVoiceInstructionsObserver(voiceInstructionsObserver)
-
-        // Create a list of coordinates that includes origin, destination
-        val coordinatesList = mutableListOf<Point>()
-        this.origin?.let { coordinatesList.add(it) }
-        this.waypoints.let { coordinatesList.addAll(waypoints) }
-        this.destination?.let { coordinatesList.add(it) }
-        findRoute(coordinatesList)
-    }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()

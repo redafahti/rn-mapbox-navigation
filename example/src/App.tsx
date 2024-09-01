@@ -5,7 +5,7 @@ import MapboxNavigation from 'mapboxnavigation';
 
 export default function App() {
   const updateRouteProgressChange = (event: any) => {
-    //console.log(event);
+    console.log(event);
   };
 
   const getCurrentPosition = () => {
