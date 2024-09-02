@@ -2,7 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent">
 
-    <com.mapbox.maps.MapView android:id="@+id/mapView" android:layout_width="0dp" android:layout_height="0dp" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintHeight_percent="0.85" app:layout_constraintVertical_bias="0" />
+    <com.mapbox.maps.MapView android:id="@+id/mapView" android:layout_width="0dp" android:layout_height="0dp" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintHeight_percent="0.9" app:layout_constraintVertical_bias="0" />
 
     <androidx.cardview.widget.CardView android:id="@+id/maneuverViewCard" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="10dp" android:layout_marginStart="10dp" android:layout_marginBottom="10dp" android:layout_marginTop="30dp" app:cardCornerRadius="16dp" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent">
         <com.mapbox.navigation.ui.components.maneuver.view.MapboxManeuverView android:id="@+id/maneuverView" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="invisible" />

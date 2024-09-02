@@ -771,7 +771,6 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
 
             val event = Arguments.createMap()
             event.putString("route", routesJson)
-
             context
             .getJSModule(RCTEventEmitter::class.java)
             .receiveEvent(id, "onRoutesReady", event)
