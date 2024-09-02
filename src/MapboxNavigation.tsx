@@ -118,7 +118,10 @@ class MapboxNavigation extends React.Component<
           language={language}
           onLocationChange={(event) => onLocationChange?.(event.nativeEvent)}
           onRouteProgressChange={(event: any) =>
-            onRouteProgressChange?.(event.nativeEvent.route)
+            onRouteProgressChange?.(event.nativeEvent)
+          }
+          onRoutesReady={(event: any) =>
+            onRouteProgressChange?.(event.nativeEvent)
           }
           onError={(event) => onError?.(event.nativeEvent)}
           {...rest}

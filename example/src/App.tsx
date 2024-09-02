@@ -47,10 +47,10 @@ export default function App() {
           ]}
           language="fr"
           onLocationChange={(event: any) => {
-            //console.log('onLocationChange', event);
+            console.log('onLocationChange', event);
           }}
           onRouteProgressChange={(event) => {
-            //updateRouteProgressChange(event);
+            updateRouteProgressChange(event);
           }}
           onRoutesReady={(event: any) => {
             console.log('onRoutesReady', event.nativeEvent.route);
