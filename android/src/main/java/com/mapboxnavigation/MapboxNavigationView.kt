@@ -20,7 +20,6 @@ import android.widget.Toast
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.events.RCTEventEmitter
-import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.bindgen.Expected
 import com.mapbox.common.location.Location
 import com.mapbox.geojson.Point
@@ -44,6 +43,10 @@ import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import com.mapbox.maps.plugin.annotation.AnnotationConfig
 
+
+import com.mapbox.api.directions.v5.models.RouteOptions
+import com.mapbox.api.directions.v5.DirectionsCriteria
+import com.mapbox.api.directions.v5.DirectionsCriteria.ProfileCriteria
 import com.mapbox.navigation.base.TimeFormat
 import com.mapbox.navigation.base.extensions.applyDefaultNavigationOptions
 import com.mapbox.navigation.base.extensions.applyLanguageAndVoiceUnitOptions
@@ -389,15 +392,6 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
     }
   }
 
-      /**
-     * The [RouteShieldCallback] will be invoked with an appropriate result for Api call
-     * [MapboxManeuverApi.getRoadShields]
-     */
-    private val roadShieldCallback = RouteShieldCallback { shields ->
-        binding.maneuverContainer.findViewById<MapboxManeuverView>(R.id.maneuverView).renderManeuverWith(shields)
-    }
-
-
   /**
    * Gets notified with progress along the currently active route.
    */
@@ -442,20 +436,27 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
           )
           .stepDistanceTextAppearance(R.style.StepDistanceRemainingAppearance)
           .build()
-
-    
-        
-        binding.maneuverContainer.visibility = View.VISIBLE
-        binding.maneuverContainer.findViewById<MapboxManeuverView>(R.id.maneuverView).renderManeuvers(maneuvers)
-        binding.maneuverView.updateManeuverViewOptions(maneuverViewOptions)
+         binding.maneuverView.visibility = View.VISIBLE
+         binding.maneuverView.updateManeuverViewOptions(maneuverViewOptions)
+         binding.maneuverView.renderManeuvers(maneuvers)      
       }
     )
 
+    val stopDistanceTraveled = routeProgress.currentLegProgress?.distanceTraveled?.toDouble() ?: 0.0
+    val stopDurationRemaining = routeProgress.currentLegProgress?.durationRemaining?.toDouble() ?: 0.0
+    val stopDistanceRemaining = routeProgress.currentLegProgress?.distanceRemaining?.toDouble() ?: 0.0
+    val stopIndex = routeProgress.currentLegProgress?.legIndex?.toDouble() ?: 0.0
+
     val event = Arguments.createMap()
     event.putDouble("distanceTraveled", routeProgress.distanceTraveled.toDouble())
-    event.putDouble("durationRemaining", routeProgress.durationRemaining)
+    event.putDouble("durationRemaining", routeProgress.durationRemaining.toDouble())
     event.putDouble("fractionTraveled", routeProgress.fractionTraveled.toDouble())
     event.putDouble("distanceRemaining", routeProgress.distanceRemaining.toDouble())
+    event.putDouble("stopIndex", stopIndex)
+    event.putDouble("stopDistanceTraveled", stopDistanceTraveled)
+    event.putDouble("stopDurationRemaining", stopDurationRemaining)
+    event.putDouble("stopDistanceRemaining", stopDistanceRemaining)
+
     context
       .getJSModule(RCTEventEmitter::class.java)
       .receiveEvent(id, "onRouteProgressChange", event)
@@ -748,7 +749,9 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
         .applyDefaultNavigationOptions()
         .applyLanguageAndVoiceUnitOptions(context)
         .coordinatesList(coordinates)
+        .profile(DirectionsCriteria.PROFILE_DRIVING)
         .language(locale.language)
+        .alternatives(false)
         .build(),
       object : NavigationRouterCallback {
         override fun onCanceled(routeOptions: RouteOptions, @RouterOrigin routerOrigin: String) {
