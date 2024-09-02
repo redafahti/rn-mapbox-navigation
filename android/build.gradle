@@ -115,14 +115,11 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
   // Mapbox Navigation SDK
-  implementation "com.mapbox.navigationcore:navigation:3.2.1"
-  implementation "com.mapbox.navigationcore:ui-components:3.2.1"
+  implementation "com.mapbox.navigationcore:navigation:3.0.2"
+  implementation "com.mapbox.navigationcore:ui-components:3.0.2"
 
-  implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.5.1'
-  implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1'
-  implementation "androidx.appcompat:appcompat:1.5.1"
-  implementation "androidx.cardview:cardview:1.0.0"
-  implementation "androidx.constraintlayout:constraintlayout:2.1.4"
+  implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+  implementation 'androidx.cardview:cardview:1.0.0'
 }
 
 if (isNewArchitectureEnabled()) {

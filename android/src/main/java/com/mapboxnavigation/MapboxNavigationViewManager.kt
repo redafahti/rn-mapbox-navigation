@@ -32,7 +32,6 @@ class MapboxNavigationViewManager(private var reactContext: ReactApplicationCont
       "onArrive", MapBuilder.of("registrationName", "onArrive"),
       "onRouteProgressChange", MapBuilder.of("registrationName", "onRouteProgressChange"),
       "onRoutesReady", MapBuilder.of("registrationName", "onRoutesReady"),
-      "onRouteChange", MapBuilder.of("registrationName", "onRouteChange"),
     )
   }
 
@@ -88,7 +87,7 @@ class MapboxNavigationViewManager(private var reactContext: ReactApplicationCont
 
   @ReactProp(name = "mute")
   override fun setMute(view: MapboxNavigationView?, value: Boolean) {
-    //view?.setMute(value)
+    view?.setMute(value)
   }
 
   companion object {

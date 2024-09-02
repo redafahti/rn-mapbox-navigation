@@ -25,14 +25,17 @@ export type RouteProgress = {
   distanceRemaining: number;
 };
 
+export type MapboxError = {
+  message?: string;
+};
+
 export type NativeEventsProps = {
   onLocationChange?: (event: NativeEvent<Location>) => void;
-  onRouteProgressChange?: (event: NativeEvent<any>) => void;
-  onRoutesReady?: (event: NativeEvent<any>) => void;
-  onRouteChange?: (event: NativeEvent<any>) => void;
-  onError?: (event: any) => void;
+  onRouteProgressChange?: (event: NativeEvent<RouteProgress>) => void;
+  onError?: (event: NativeEvent<MapboxError>) => void;
   onCancelNavigation?: () => void;
   onArrive?: () => void;
+  onRoutesReady?: (event: NativeEvent<any>) => void;
 };
 
 export interface MapboxNavigationProps {
@@ -43,15 +46,30 @@ export interface MapboxNavigationProps {
   waypoints?: Coordinate[];
   destination: Coordinate;
   language?: Language;
+  /**
+   * [iOS only]
+   * @Default false
+   */
   showsEndOfRouteFeedback?: boolean;
+
+  /**
+   * Hide status of bar on navigation [iOS only]
+   * @Default false
+   */
   hideStatusView?: boolean;
+
+  /**
+   * Location simulation for debug.
+   * @Default false
+   * @available iOS
+   * @android Planned for next release
+   */
   shouldSimulateRoute?: boolean;
+
   onLocationChange?: (location: Location) => void;
   onRouteProgressChange?: (progress: RouteProgress) => void;
-  onRouteLegProgressChange?: (progress: RouteProgress) => void;
-  onRouteChange?: (route: any) => void;
-  onRoutesReady?: (route: any) => void;
-  onError?: (error: any) => void;
+  onError?: (error: MapboxError) => void;
   onCancelNavigation?: () => void;
   onArrive?: () => void;
+  onRoutesReady?: (route: any) => void;
 }

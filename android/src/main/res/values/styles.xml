@@ -1,8 +1,6 @@
 <resources>
     <style name="MapboxCustomManeuverStyle" parent="MapboxStyleManeuverView">
         <item name="maneuverViewBackgroundColor">#3FA5F0</item>
-        <item name="subManeuverViewBackgroundColor">#7dd3fc</item>
-        <item name="upcomingManeuverViewBackgroundColor">#7dd3fc</item>
     </style>
     <style name="PrimaryManeuverTextAppearance" parent="TextAppearance.AppCompat">
         <item name="android:textColor">#FFFFFF</item>

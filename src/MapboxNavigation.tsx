@@ -12,6 +12,10 @@ import {
 import type { MapboxNavigationProps } from './types';
 import MapboxNavigationView from './MapboxNavigationViewNativeComponent';
 
+// import MapboxNavigationNativeComponent, {
+//   Commands,
+// } from './MapboxNavigationViewNativeComponent';
+
 const permissions: Array<Permission> =
   Platform.OS === 'android' && Platform.Version >= 33
     ? [
@@ -100,8 +104,6 @@ class MapboxNavigation extends React.Component<
       style,
       onLocationChange,
       onRouteProgressChange,
-      onRoutesReady,
-      onRouteChange,
       onError,
       ...rest
     } = this.props;
@@ -118,8 +120,6 @@ class MapboxNavigation extends React.Component<
           onRouteProgressChange={(event) =>
             onRouteProgressChange?.(event.nativeEvent)
           }
-          onRoutesReady={(event) => onRoutesReady?.(event.nativeEvent)}
-          onRouteChange={(event) => onRouteChange?.(event.nativeEvent)}
           onError={(event) => onError?.(event.nativeEvent)}
           {...rest}
         />

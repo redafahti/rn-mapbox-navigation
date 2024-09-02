@@ -31,41 +31,32 @@ export default function App() {
         flex: 1,
       }}
     >
-      <View
-        style={{
-          height: '70%',
-        }}
-      >
-        {position ? (
-          <MapboxNavigation
-            startOrigin={{
-              latitude: position.latitude,
-              longitude: position.longitude,
-            }}
-            destination={{ latitude: 33.603562, longitude: -7.564305 }}
-            style={styles.container}
-            shouldSimulateRoute={true}
-            showCancelButton={false}
-            waypoints={[
-              { latitude: 33.593451, longitude: -7.600996 },
-              { latitude: 33.598267, longitude: -7.575928 },
-            ]}
-            language="fr"
-            onLocationChange={(event: any) => {
-              //console.log('onLocationChange', event);
-            }}
-            onRouteProgressChange={(event) => {
-              updateRouteProgressChange(event);
-            }}
-            onRoutesReady={(event: any) => {
-              //console.log('onRoutesReady', event.route);
-            }}
-            onRouteChange={(event: any) => {
-              console.log('onRouteChange', event);
-            }}
-          />
-        ) : null}
-      </View>
+      {position ? (
+        <MapboxNavigation
+          startOrigin={{
+            latitude: position.latitude,
+            longitude: position.longitude,
+          }}
+          destination={{ latitude: 33.603562, longitude: -7.564305 }}
+          style={styles.container}
+          shouldSimulateRoute={true}
+          showCancelButton={false}
+          waypoints={[
+            { latitude: 33.593451, longitude: -7.600996 },
+            { latitude: 33.598267, longitude: -7.575928 },
+          ]}
+          language="fr"
+          onLocationChange={(event: any) => {
+            console.log('onLocationChange', event);
+          }}
+          onRouteProgressChange={(event) => {
+            updateRouteProgressChange(event);
+          }}
+          onRoutesReady={(event: any) => {
+            console.log('onRoutesReady', event.route);
+          }}
+        />
+      ) : null}
     </View>
   );
 }
