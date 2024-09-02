@@ -31,7 +31,7 @@ export type MapboxError = {
 
 export type NativeEventsProps = {
   onLocationChange?: (event: NativeEvent<Location>) => void;
-  onRouteProgressChange?: (event: any) => void;
+  onRouteProgressChange?: (event: NativeEvent<RouteProgress>) => void;
   onError?: (event: NativeEvent<MapboxError>) => void;
   onCancelNavigation?: () => void;
   onArrive?: () => void;
