@@ -1,6 +1,6 @@
 {
     "name": "mapboxnavigation",
-    "version": "0.1.13",
+    "version": "0.1.14",
     "description": "mapboxnavigation",
     "source": "./src/index.tsx",
     "main": "./lib/commonjs/index.js",
