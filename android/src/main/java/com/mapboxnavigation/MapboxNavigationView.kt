@@ -652,19 +652,6 @@ class MapboxNavigationView(private val context: ThemedReactContext): FrameLayout
                 pointAnnotationManager?.create(pointAnnotationOptions)
             }
         }
-        stopsBitmapFromDrawableRes()?.let { bitmap ->
-            val annotationConfig = AnnotationConfig()
-            val annotationApi = binding.mapView.annotations
-            val pointAnnotationManager = annotationApi?.createPointAnnotationManager(annotationConfig)
-
-            waypoints.forEach { waypoint ->
-                val pointAnnotationOptions = PointAnnotationOptions()
-                    .withPoint(waypoint) 
-                    .withIconImage(bitmap)
-                    .withIconSize(1.6)
-                pointAnnotationManager?.create(pointAnnotationOptions)
-            }
-        }
     }
     private fun destinationBitmapFromDrawableRes() = convertDrawableToBitmap(ContextCompat.getDrawable(context, R.drawable.destination_icon))
     private fun stopsBitmapFromDrawableRes() = convertDrawableToBitmap(ContextCompat.getDrawable(context, R.drawable.waypoint_icon))

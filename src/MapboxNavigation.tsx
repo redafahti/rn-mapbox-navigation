@@ -1,13 +1,7 @@
 import * as React from 'react';
 
-import type { Permission, TextStyle, ViewStyle } from 'react-native';
-import {
-  PermissionsAndroid,
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import type { Permission } from 'react-native';
+import { PermissionsAndroid, Platform, StyleSheet, View } from 'react-native';
 
 import type { MapboxNavigationProps } from './types';
 import MapboxNavigationView from './MapboxNavigationViewNativeComponent';
@@ -82,20 +76,6 @@ class MapboxNavigation extends React.Component<
   }
 
   render() {
-    if (!this.state.prepared) {
-      const overiteViewStyle: ViewStyle = {
-        justifyContent: 'center',
-        alignItems: 'center',
-      };
-      const overiteTextStyle: TextStyle = this.state.error
-        ? { color: 'red' }
-        : {};
-      return (
-        <View style={[this.props.style, overiteViewStyle]}>
-          <Text style={[styles.message, overiteTextStyle]}>Loading...</Text>
-        </View>
-      );
-    }
     const {
       language,
       startOrigin,
